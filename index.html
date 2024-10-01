@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Calculadora Avanzada</title>
+    <link rel="stylesheet" href="css/bootstrap.min.css">
+    <link rel="stylesheet" href="css/estilos.css">
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.6/dist/umd/popper.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.min.js"></script>
+</head>
+<body>
+    <div class="container">
+        <div class="row mt-4">
+            <div class="col-md-6">
+                <h1 class="text-start" style="font-size: 1.5rem;">Calculadora Avanzada</h1>
+                <div class="calculadora">
+                    <input type="text" id="pantalla" disabled>
+                    <div class="botones">
+                        <button class="boton" onclick="agregarNumero('7')">7</button>
+                        <button class="boton" onclick="agregarNumero('8')">8</button>
+                        <button class="boton" onclick="agregarNumero('9')">9</button>
+                        <button class="boton operador" onclick="seleccionarOperacion('dividir')">/</button>
+                        <button class="boton" onclick="agregarNumero('4')">4</button>
+                        <button class="boton" onclick="agregarNumero('5')">5</button>
+                        <button class="boton" onclick="agregarNumero('6')">6</button>
+                        <button class="boton operador" onclick="seleccionarOperacion('multiplicar')">*</button>
+                        <button class="boton" onclick="agregarNumero('1')">1</button>
+                        <button class="boton" onclick="agregarNumero('2')">2</button>
+                        <button class="boton" onclick="agregarNumero('3')">3</button>
+                        <button class="boton operador" onclick="seleccionarOperacion('restar')">-</button>
+                        <button class="boton" onclick="agregarNumero('0')">0</button>
+                        <button class="boton" onclick="limpiarPantalla()">C</button>
+                        <button class="boton" onclick="calcular()">=</button>
+                        <button class="boton operador" onclick="seleccionarOperacion('sumar')">+</button>
+                    </div>
+                </div>
+                <div id="spinner" class="spinner-border text-primary" role="status" style="display: none;">
+                    <span class="visually-hidden">Cargando...</span>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <h2>Lista de la Compra</h2>
+                <img src="img/cesta compra.jpg" alt="Cesta de la Compra" class="img-fluid mb-3" style="max-width: 150px;">
+                <div class="mb-3">
+                    <select id="lista-desplegable" class="form-select" aria-label="Selecciona un item">
+                        <option selected>Añade un nuevo elemento</option>
+                        <option value="agua">Agua</option>
+                        <option value="leche">Leche</option>
+                        <option value="harina">Harina</option>
+                        <option value="nocilla">Nocilla</option>
+                        <option value="pizza">Pizza</option>
+                    </select>
+                </div>
+                <form id="formulario">
+                    <div class="mb-3">
+                        <label for="nuevo-item" class="form-label">Añadir elemento que no está en al lista</label>
+                        <input type="text" class="form-control" id="nuevo-item" placeholder="Escribe un nuevo item" required>
+                    </div>
+                    <button type="submit" class="btn btn-primary">Añadir</button>
+                </form>
+                <h3>Lista Desordenada:</h3>
+                <ul id="lista-desordenada"></ul>
+                <h3>Lista Ordenada alfabéticamente:</h3>
+                <ol id="lista-ordenada"></ol>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let num1 = "";
+        let num2 = "";
+        let operacion = "";
+
+        function agregarNumero(numero) {
+            const pantalla = document.getElementById('pantalla');
+            if (operacion === "") {
+                num1 += numero;
+                pantalla.value = num1;
+            } else {
+                num2 += numero;
+                pantalla.value = num2;
+            }
+        }
+
+        function seleccionarOperacion(op) {
+            operacion = op;
+        }
+
+        function limpiarPantalla() {
+            num1 = "";
+            num2 = "";
+            operacion = "";
+            document.getElementById('pantalla').value = "";
+        }
+
+        async function calcular() {
+            if (num1 !== "" && num2 !== "" && operacion !== "") {
+                // Mostrar spinner
+                document.getElementById('spinner').style.display = 'block';
+                const response = await fetch(`/cgi-bin/calculadora.cgi?num1=${num1}&num2=${num2}&operacion=${operacion}`);
+                const resultado = await response.text();
+                document.getElementById('pantalla').value = resultado;
+                // Reiniciar los valores para una nueva operación
+                num1 = "";
+                num2 = "";
+                operacion = "";
+                // Ocultar spinner
+                document.getElementById('spinner').style.display = 'none';
+            }
+        }
+
+        // Manejo del formulario
+        document.getElementById('formulario').addEventListener('submit', function(event) {
+            event.preventDefault(); // Evitar el envío del formulario
+            const nuevoItem = document.getElementById('nuevo-item').value;
+            agregarItem(nuevoItem);
+            document.getElementById('nuevo-item').value = ''; // Limpiar el campo
+        });
+
+        // Manejo del dropdown
+        document.getElementById('lista-desplegable').addEventListener('change', function() {
+            const selectedItem = this.value;
+            if (selectedItem !== "Selecciona un item") {
+                agregarItem(selectedItem);
+                this.value = "Selecciona un item"; // Reiniciar el dropdown
+            }
+        });
+
+        // Función para agregar items a las listas
+        function agregarItem(item) {
+            // Agregar a la lista desordenada
+            const ul = document.getElementById('lista-desordenada');
+            const liDesordenado = document.createElement('li');
+            liDesordenado.textContent = item;
+            ul.appendChild(liDesordenado);
+
+            // Agregar a la lista ordenada
+            const ol = document.getElementById('lista-ordenada');
+            const liOrdenado = document.createElement('li');
+            liOrdenado.textContent = item;
+            ol.appendChild(liOrdenado);
+
+            // Ordenar la lista ordenada
+            const items = Array.from(ol.getElementsByTagName('li'));
+            items.sort((a, b) => a.textContent.localeCompare(b.textContent));
+            ol.innerHTML = ""; // Limpiar la lista ordenada
+            items.forEach(item => ol.appendChild(item)); // Reagregar los elementos ordenados
+        }
+    </script>
+</body>
+</html>
