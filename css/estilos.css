@@ -7,6 +7,15 @@ body {
     height: 100vh;
 }
 
+@font-face {
+    font-family: miFuenteEspecial;
+    src: url(../OpenSans-Italic.ttf);
+}
+
+h1 {
+    font-family: miFuenteEspecial;
+}
+
 .calculadora {
     width: 320px;
     border: 1px solid #ccc;
